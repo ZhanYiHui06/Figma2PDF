@@ -1,4 +1,4 @@
-# Figma2PDF（工作名）
+# Folio（对开）
 
 Figma 插件：把 Frame 导出为印刷级多页 PDF（RGB / CMYK·ICC、可视化排序、尺寸/出血/分辨率检查）。
 
