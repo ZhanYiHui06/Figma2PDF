@@ -1,6 +1,6 @@
 {
   "name": "Folio – Frame to CMYK PDF",
-  "id": "folio-pdf-export-dev",
+  "id": "1694012558884472724",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",
