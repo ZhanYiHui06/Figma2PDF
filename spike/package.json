@@ -1,0 +1,9 @@
+{
+  "name": "spike",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@okathira/ghostpdl-wasm": "1.1.0",
+    "pdf-lib": "1.17.1"
+  }
+}
