@@ -70,7 +70,7 @@ export function Icc({ iccs, selected, storageError, onSelect, onDelete, onBack, 
         <div class="muted">CMYK 导出时用哪个配置文件，决定颜色怎样转换。最好使用印刷厂指定的那个。</div>
         <div class="icc-group-title">随插件提供</div>
         <div class="icc-list">
-          {item(BUILTIN_ICC, "近似 SWOP · 不确定时使用")}
+          {item(BUILTIN_ICC, "Ghostscript · 默认")}
           {bundled.map((e) => item(e, e.note))}
         </div>
         <div class="icc-group-title">首次使用时下载</div>

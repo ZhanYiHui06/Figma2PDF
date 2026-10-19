@@ -6,7 +6,7 @@ import type { IccEntry, Issue, PageInfo, SelectionPayload, Settings } from "../.
 import { Banner, Checkbox, Segmented, Select, Toggle } from "../components";
 import { moveId, useDragSort } from "../dnd";
 import { Icon } from "../icons";
-import { ICC_PRESETS } from "../icc-store";
+import { BUILTIN_ICC, ICC_PRESETS } from "../icc-store";
 import { headlineIssue } from "../issues";
 
 export type Section = "color" | "bleed" | "output";
@@ -354,7 +354,7 @@ function ColorSection(p: MainProps) {
               <Select
                 value={s.iccId}
                 options={[
-                  { value: "builtin", label: "通用 CMYK（近似 SWOP）" },
+                  { value: "builtin", label: BUILTIN_ICC.name },
                   ...ICC_PRESETS.map((e) => ({ value: e.id, label: e.kind === "remote" ? `${e.name} · 需下载` : e.name })),
                   ...p.iccs.map((e) => ({ value: e.id, label: `${e.name} · 你导入的` })),
                 ]}

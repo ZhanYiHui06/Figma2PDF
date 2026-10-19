@@ -4,7 +4,7 @@ import loadGs from "@okathira/ghostpdl-wasm";
 
 export interface GsJob {
   pdf: Uint8Array;
-  /** 用户导入的 ICC；不传则用 Ghostscript 内置的 default_cmyk.icc（近似 SWOP） */
+  /** 用户导入的 ICC；不传则用 Ghostscript 内置的 default_cmyk.icc（Artifex CMYK SWOP） */
   icc?: Uint8Array;
 }
 
@@ -66,7 +66,7 @@ export async function runGs(wasm: ArrayBuffer | Uint8Array, job: GsJob, onPage?:
   return { pdf: gs.FS.readFile("/out.pdf"), log };
 }
 
-export const ICC_UNUSABLE = "色彩引擎读不了这个 ICC 配置文件。请换一个配置文件，或改用内置的「通用 CMYK（近似 SWOP）」。";
+export const ICC_UNUSABLE = "色彩引擎读不了这个 ICC 配置文件。请换一个配置文件，或改用内置的「Artifex CMYK SWOP」。";
 
 const REPAIRED = /errors were encountered|had errors that were repaired/;
 

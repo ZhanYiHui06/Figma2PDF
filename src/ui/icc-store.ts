@@ -15,7 +15,7 @@ export const STORAGE_LIMIT = 5 * 1024 * 1024;
 /** 给设置等其他数据留一点余量 */
 const ICC_BUDGET = STORAGE_LIMIT - 64 * 1024;
 
-export const BUILTIN_ICC: IccEntry = { id: "builtin", name: "通用 CMYK（近似 SWOP）", size: 0, stored: 0, importedAt: 0 };
+export const BUILTIN_ICC: IccEntry = { id: "builtin", name: "Artifex CMYK SWOP", size: 0, stored: 0, importedAt: 0 };
 
 /**
  * 随插件提供的配置文件。来源与许可见 profiles/NOTICE.md。
@@ -35,13 +35,13 @@ const REGISTRY = "https://registry.color.org/profile-registry/profiles/";
 const remote = (id: string, name: string, note: string, file: string, sha256: string, size: number): IccPreset => ({ id, name, note, kind: "remote", url: REGISTRY + file, sha256, size, stored: 0, importedAt: 0 });
 
 export const ICC_PRESETS: IccPreset[] = [
-  bundled("preset:fogra39", "欧洲铜版纸 FOGRA39", "ISO 12647-2 铜版纸，国内印刷厂也常用", fogra39, 122152),
-  bundled("preset:fogra47", "欧洲非涂布纸 FOGRA47", "胶版纸、书写纸等非涂布纸", fogra47, 122088),
-  bundled("preset:gracol-tr006", "美国铜版纸 GRACoL（TR006）", "北美单张纸铜版印刷", gracolTr006, 122092),
-  bundled("preset:swop-tr005", "美国轮转铜版 SWOP（TR005）", "北美杂志轮转印刷", swopTr005, 122072),
-  remote("preset:japancolor2011", "日本铜版纸 Japan Color 2011", "日本及部分亚洲印刷厂", "JapanColor2011Coated.icc", "73202ea802e57a63a0be05ed993fde8e4d51cc436120e6c47815ce785ff42916", 1979304),
-  remote("preset:pso-coated-v3", "欧洲铜版纸 PSO Coated v3（FOGRA51）", "新版欧洲铜版纸标准", "PSOcoated_v3.icc", "c30ad2c01e8f93135ec7682c535e0a81bc2d177c301e196376c5f5838b5c8e86", 2195228),
-  remote("preset:gracol2013", "美国铜版纸 GRACoL 2013（CRPC6）", "新版北美铜版纸标准", "GRACoL2013_CRPC6.icc", "4ebbfad6bc9cfc033fdafdd8ac5df8159208932cb16d9a6596d349ae7ab50443", 3462308),
+  bundled("preset:fogra39", "FOGRA39", "colord · CC0", fogra39, 122152),
+  bundled("preset:fogra47", "FOGRA47", "colord · CC0", fogra47, 122088),
+  bundled("preset:gracol-tr006", "GRACoL TR006", "colord · CC0", gracolTr006, 122092),
+  bundled("preset:swop-tr005", "SWOP TR005", "colord · CC0", swopTr005, 122072),
+  remote("preset:japancolor2011", "Japan Color 2011 Coated", "ICC Registry", "JapanColor2011Coated.icc", "73202ea802e57a63a0be05ed993fde8e4d51cc436120e6c47815ce785ff42916", 1979304),
+  remote("preset:pso-coated-v3", "PSO Coated v3 (FOGRA51)", "ICC Registry", "PSOcoated_v3.icc", "c30ad2c01e8f93135ec7682c535e0a81bc2d177c301e196376c5f5838b5c8e86", 2195228),
+  remote("preset:gracol2013", "GRACoL 2013 (CRPC6)", "ICC Registry", "GRACoL2013_CRPC6.icc", "4ebbfad6bc9cfc033fdafdd8ac5df8159208932cb16d9a6596d349ae7ab50443", 3462308),
 ];
 
 export const presetById = (id: string) => ICC_PRESETS.find((p) => p.id === id);
