@@ -80,6 +80,12 @@ npm run check      # 类型检查 + 单元测试 + 构建
 
 </details>
 
+## 致谢
+
+- [Ghostscript](https://www.ghostscript.com/)（Artifex）和 [ghostpdl-wasm](https://github.com/okathira/ghostpdl-wasm)（okathira）：Folio 的 CMYK 转换全靠它们在浏览器里完成。
+- [colord](https://github.com/hughsie/colord) 项目以 CC0 发布的 ICC 配置文件；按需下载的配置文件来自 [ICC Registry](https://registry.color.org/)。
+- README 的写法参考了 [beautify-github-readme](https://github.com/oil-oil/beautify-github-readme)。
+
 ## 许可
 
 [AGPL-3.0-or-later](LICENSE)，与插件内使用的 Ghostscript 一致。
