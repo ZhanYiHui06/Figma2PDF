@@ -9,7 +9,9 @@ const root = path.dirname(path.dirname(new URL(import.meta.url).pathname));
 const dist = path.join(root, "dist");
 await mkdir(dist, { recursive: true });
 
-const common = { bundle: true, minify: true, legalComments: "none", logLevel: "warning", charset: "utf8" };
+const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+// 版本号只在 package.json 里维护，构建时注入界面
+const common = { define: { __VERSION__: JSON.stringify(pkg.version) }, bundle: true, minify: true, legalComments: "none", logLevel: "warning", charset: "utf8" };
 
 // gs.js 是给 Node 和浏览器共用的 Emscripten 胶水：Node 分支里的 import("module") 不会在浏览器执行
 const gsShim = {

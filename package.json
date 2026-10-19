@@ -1,6 +1,6 @@
 {
   "name": "folio-figma-plugin",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Folio（对开）：把 Figma Frame 导出为印刷级多页 PDF",
   "license": "AGPL-3.0-or-later",

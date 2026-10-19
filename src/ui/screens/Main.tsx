@@ -492,7 +492,7 @@ function Empty({ sel }: { sel: SelectionPayload | null }) {
       </div>
       <div class="divider" />
       <div class="footer">
-        <span class="hint">PDF 尺寸提示：Figma 中 1px = 1pt ≈ 0.353mm</span>
+        <span class="hint">v{__VERSION__}</span>
         <div class="spacer" />
         <button type="button" class="btn btn-primary" style="width:120px" disabled>
           导出 PDF
