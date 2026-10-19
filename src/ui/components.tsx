@@ -33,8 +33,10 @@ export function Radio({ on }: { on: boolean }) {
 }
 
 export function Segmented<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
+  const i = Math.max(0, options.findIndex((o) => o.value === value));
   return (
-    <div class="segmented" role="radiogroup">
+    <div class="segmented" role="radiogroup" style={{ "--n": options.length, "--i": i }}>
+      <span class="seg-thumb" aria-hidden="true" />
       {options.map((o) => (
         <button type="button" key={o.value} role="radio" aria-checked={o.value === value} class={o.value === value ? "on" : ""} onClick={() => onChange(o.value)}>
           {o.label}
@@ -77,9 +79,9 @@ export function Nav({ title, onBack, right }: { title: string; onBack?: () => vo
   );
 }
 
-export function Banner({ kind, children, hug }: { kind: "info" | "warning" | "neutral"; children: ComponentChildren; hug?: boolean }) {
+export function Banner({ kind, children }: { kind: "info" | "warning" | "neutral"; children: ComponentChildren }) {
   return (
-    <div class={`banner banner-${kind}${hug ? " hug" : ""}`}>
+    <div class={`banner banner-${kind}`}>
       <Icon name={kind === "warning" ? "warning" : "info"} />
       <div class="banner-body">{children}</div>
     </div>

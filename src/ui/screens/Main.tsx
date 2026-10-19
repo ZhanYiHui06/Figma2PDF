@@ -1,6 +1,6 @@
 // 01 列表视图 / 02 网格视图 / 03 设置展开 / 08 空状态 / 09 深色模式（同一套组件，颜色走变量）
 
-import { useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { formatPaperSize } from "../../lib/paper";
 import type { IccEntry, Issue, PageInfo, SelectionPayload, Settings } from "../../shared/messages";
 import { Banner, Checkbox, Segmented, Select, Toggle } from "../components";
@@ -27,6 +27,7 @@ export interface MainProps {
   onRemove: (id: string) => void;
   onReset: () => void;
   onOpen: (id: string) => void;
+  onIssues: () => void;
   onSingle: (containerId: string, single: boolean) => void;
   onManageIcc: () => void;
   onExport: () => void;
@@ -45,6 +46,8 @@ function fitBox(w: number, h: number, maxW: number, maxH: number) {
 
 export function Main(p: MainProps) {
   const listRef = useRef<HTMLDivElement>(null);
+  // 列表滚离顶部后，页面栏底边变成渐变透明 + 渐变模糊
+  const [scrolled, setScrolled] = useState(false);
   const ids = p.pages.map((x) => x.id);
   const { drag, start } = useDragSort({
     ids,
@@ -65,109 +68,112 @@ export function Main(p: MainProps) {
   return (
     <div class="screen">
       {banners.length > 0 && <div class="notice">{banners}</div>}
-      <div class="toolbar">
-        <span class="title">页面</span>
-        <span class="tag tag-neutral">{p.pages.length}</span>
-        <div class="spacer" />
-        <button type="button" class="reset" disabled={!p.orderChanged} onClick={p.onReset} title="按画布位置重新排序，并恢复移除的页面">
-          <Icon name="undo" size={12} />
-          恢复默认顺序
-        </button>
-        <div class="view-toggle">
-          <button type="button" class={p.settings.view === "list" ? "on" : ""} onClick={() => p.onSettings({ view: "list" })} aria-label="列表视图">
-            <Icon name="list" size={14} />
+      <div class="pages-area">
+        <div class={`toolbar${scrolled ? " scrolled" : ""}`}>
+          <span class="title">页面</span>
+          <span class="tag tag-neutral">{p.pages.length}</span>
+          <div class="spacer" />
+          <button type="button" class="reset" disabled={!p.orderChanged} onClick={p.onReset} title="按画布位置重新排序，并恢复移除的页面">
+            <Icon name="undo" size={12} />
+            恢复默认顺序
           </button>
-          <button type="button" class={p.settings.view === "grid" ? "on" : ""} onClick={() => p.onSettings({ view: "grid" })} aria-label="网格视图">
-            <Icon name="grid" size={14} />
-          </button>
+          <div class="view-toggle" style={{ "--n": 2, "--i": p.settings.view === "list" ? 0 : 1 }}>
+            <span class="seg-thumb" aria-hidden="true" />
+            <button type="button" class={p.settings.view === "list" ? "on" : ""} onClick={() => p.onSettings({ view: "list" })} aria-label="列表视图">
+              <Icon name="list" size={14} />
+            </button>
+            <button type="button" class={p.settings.view === "grid" ? "on" : ""} onClick={() => p.onSettings({ view: "grid" })} aria-label="网格视图">
+              <Icon name="grid" size={14} />
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="pages scroll" ref={listRef}>
-        {p.settings.view === "list" ? (
-          p.pages.map((pg, i) => {
-            const head = headlineIssue(p.issues.get(pg.id) ?? []);
-            return (
-              <div
-                key={pg.id}
-                data-id={pg.id}
-                class={`row${drag?.id === pg.id ? " dragging" : ""}`}
-                onClick={() => p.onOpen(pg.id)}
-              >
-                <span
-                  class="handle"
-                  onPointerDown={(e) => start(pg.id, e, (e.currentTarget as HTMLElement).parentElement)}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Icon name="grip" />
-                </span>
-                <span class="index">{pad2(i + 1)}</span>
-                <span class="thumb" style={thumbStyle(p.thumbs[pg.id])} />
-                <div class="text">
-                  <span class="name">{pg.name}</span>
-                  <span class="meta">{formatPaperSize(pg.width, pg.height)}</span>
-                </div>
-                {head && (
-                  <span class="tag tag-warning tag-lg row-tag">
-                    <Icon name="warning" size={12} />
-                    {head.short}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  class="remove"
-                  aria-label="从本次导出中移除"
-                  title="从本次导出中移除（不改画布）"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    p.onRemove(pg.id);
-                  }}
-                >
-                  <Icon name="close" />
-                </button>
-              </div>
-            );
-          })
-        ) : (
-          <div class="grid">
-            {p.pages.map((pg, i) => {
-              const has = (p.issues.get(pg.id)?.length ?? 0) > 0;
-              const box = fitBox(pg.width, pg.height, 92, 130);
+        <div class="pages scroll" ref={listRef} onScroll={(e) => setScrolled((e.currentTarget as HTMLElement).scrollTop > 0)}>
+          {p.settings.view === "list" ? (
+            p.pages.map((pg, i) => {
+              const head = headlineIssue(p.issues.get(pg.id) ?? []);
               return (
                 <div
                   key={pg.id}
                   data-id={pg.id}
-                  class={`card${drag?.id === pg.id ? " placeholder" : ""}`}
-                  onPointerDown={(e) => start(pg.id, e, e.currentTarget as HTMLElement)}
+                  class={`row${drag?.id === pg.id ? " dragging" : ""}`}
+                  onClick={() => p.onOpen(pg.id)}
                 >
-                  <div class="thumb-wrap">
-                    <span class="thumb" style={{ ...box, ...thumbStyle(p.thumbs[pg.id]) }} />
-                    {has && (
-                      <span class="dot">
-                        <Icon name="warning" size={11} />
-                      </span>
-                    )}
-                  </div>
-                  <span class="label">
-                    {pad2(i + 1)} {pg.name}
+                  <span
+                    class="handle"
+                    onPointerDown={(e) => start(pg.id, e, (e.currentTarget as HTMLElement).parentElement)}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Icon name="grip" />
                   </span>
+                  <span class="index">{pad2(i + 1)}</span>
+                  <span class="thumb" style={thumbStyle(p.thumbs[pg.id])} />
+                  <div class="text">
+                    <span class="name">{pg.name}</span>
+                    <span class="meta">{formatPaperSize(pg.width, pg.height)}</span>
+                  </div>
+                  {head && (
+                    <span class="tag tag-warning tag-lg row-tag">
+                      <Icon name="warning" size={12} />
+                      {head.short}
+                    </span>
+                  )}
                   <button
                     type="button"
                     class="remove"
                     aria-label="从本次导出中移除"
-                    onPointerDown={(e) => e.stopPropagation()}
+                    title="从本次导出中移除（不改画布）"
                     onClick={(e) => {
                       e.stopPropagation();
                       p.onRemove(pg.id);
                     }}
                   >
-                    <Icon name="close" size={12} />
+                    <Icon name="close" />
                   </button>
                 </div>
               );
-            })}
-          </div>
-        )}
+            })
+          ) : (
+            <div class="grid">
+              {p.pages.map((pg, i) => {
+                const has = (p.issues.get(pg.id)?.length ?? 0) > 0;
+                const box = fitBox(pg.width, pg.height, 92, 130);
+                return (
+                  <div
+                    key={pg.id}
+                    data-id={pg.id}
+                    class={`card${drag?.id === pg.id ? " placeholder" : ""}`}
+                    onPointerDown={(e) => start(pg.id, e, e.currentTarget as HTMLElement)}
+                  >
+                    <div class="thumb-wrap">
+                      <span class="thumb" style={{ ...box, ...thumbStyle(p.thumbs[pg.id]) }} />
+                    </div>
+                    {has && (
+                      <span class="dot" title="有提示，点开查看">
+                        <Icon name="warning" size={12} />
+                      </span>
+                    )}
+                    <span class="label">
+                      {pad2(i + 1)} {pg.name}
+                    </span>
+                    <button
+                      type="button"
+                      class="remove"
+                      aria-label="从本次导出中移除"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        p.onRemove(pg.id);
+                      }}
+                    >
+                      <Icon name="close" size={12} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {drag && dragged && (
@@ -203,7 +209,7 @@ export function Main(p: MainProps) {
       <div class="divider" />
       <div class="footer">
         {totalIssues > 0 ? (
-          <button type="button" class="issues" onClick={() => p.onOpen(p.pages.find((x) => p.issues.get(x.id)?.length)!.id)}>
+          <button type="button" class="issues" onClick={p.onIssues}>
             <Icon name="warning" size={14} />
             {totalIssues} 项提示
           </button>
@@ -225,7 +231,7 @@ function renderBanners(p: MainProps) {
   for (const e of containers.slice(0, 2)) {
     const single = p.singles.has(e.id);
     out.push(
-      <Banner kind="info" hug key={e.id}>
+      <Banner kind="info" key={e.id}>
         <span>{single ? `「${e.name}」按单页导出` : `已将「${e.name}」展开为 ${e.count} 页`}</span>
         <button type="button" class="link" style="align-self:flex-start" onClick={() => p.onSingle(e.id, !single)}>
           {single ? "改为展开成多页" : "改为作为单页导出"}
@@ -236,7 +242,7 @@ function renderBanners(p: MainProps) {
   if (!containers.length) {
     for (const e of (p.sel?.expansions ?? []).filter((x) => x.kind === "section").slice(0, 1)) {
       out.push(
-        <Banner kind="info" hug key={e.id}>
+        <Banner kind="info" key={e.id}>
           <span>已展开 Section「{e.name}」中的 {e.count} 个 Frame</span>
         </Banner>,
       );
@@ -244,7 +250,7 @@ function renderBanners(p: MainProps) {
   }
   if (p.sel && p.sel.ignored.count > 0) {
     out.push(
-      <Banner kind="neutral" hug key="ignored">
+      <Banner kind="neutral" key="ignored">
         <span>
           已忽略 {p.sel.ignored.count} 个非 Frame 对象{p.sel.ignored.label ? `（${p.sel.ignored.label}）` : ""}
         </span>

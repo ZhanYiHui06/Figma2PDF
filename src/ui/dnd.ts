@@ -68,7 +68,9 @@ export function useDragSort(opts: Options) {
     if (!box) return;
     const r = box.getBoundingClientRect();
     const edge = 28;
-    const dir = clientY < r.top + edge ? -1 : clientY > r.bottom - edge ? 1 : 0;
+    // 列表顶部被浮动的页面栏盖住（padding-top），滚动热区从它下方算起
+    const top = r.top + (parseFloat(getComputedStyle(box).paddingTop) || 0);
+    const dir = clientY < top + edge ? -1 : clientY > r.bottom - edge ? 1 : 0;
     if (dir) scrollTimer.current = window.setInterval(() => (box.scrollTop += dir * 8), 16);
   };
 

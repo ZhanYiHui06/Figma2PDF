@@ -130,28 +130,53 @@ export function Detail({ page, thumb, issues, fix, settings, onFix, onLocate, on
   );
 }
 
-function IssueCard({ issue, plan, onLocate }: { issue: Issue; plan: { paper: string }; onLocate: (id: string) => void }) {
-  let title = "";
-  let body = "";
+/** 提示的标题和说明，单页详情和「全部提示」共用 */
+export function issueText(issue: Issue, paper: string, page?: PageInfo): { title: string; body: string } {
+  const at = issue.nodeName ? `（「${issue.nodeName}」）` : "";
   switch (issue.kind) {
-    case "ppi":
-      title = issue.level === "severe" ? "图片分辨率太低，印出来会模糊" : "图片分辨率偏低";
-      body = `图层「${issue.nodeName}」原图 ${issue.imageW} × ${issue.imageH} px，放到 ${plan.paper} 后约 ${Math.round(issue.ppi ?? 0)} ppi，印刷建议 ≥ 300 ppi。`;
+    case "size":
+      return {
+        title: "尺寸可能不是你想要的",
+        body: page
+          ? `这一页导出后是 ${formatMm(page.width, page.height)}（${issue.short}）。Figma 里 1px = 1pt ≈ 0.353mm，可以在单页详情里按目标纸张缩放。`
+          : `${issue.short}。可以在单页详情里按目标纸张缩放。`,
+      };
+    case "ppi": {
+      let body = `图层「${issue.nodeName}」原图 ${issue.imageW} × ${issue.imageH} px，放到 ${paper} 后约 ${Math.round(issue.ppi ?? 0)} ppi，印刷建议 ≥ 300 ppi。`;
       if ((issue.count ?? 1) > 1) body += `这一页共有 ${issue.count} 张图片低于 300 ppi。`;
-      break;
+      return { title: issue.level === "severe" ? "图片分辨率太低，印出来会模糊" : "图片分辨率偏低", body };
+    }
     case "edge":
-      title = "贴边元素没有延伸到出血区";
-      body = `有 ${issue.count} 个元素刚好贴着成品边缘（例如「${issue.nodeName}」）。裁切有误差，边上可能露出白边。把它们拉出画框外，超出部分会作为出血导出。`;
-      break;
+      return {
+        title: "贴边元素没有延伸到出血区",
+        body: `有 ${issue.count} 个元素刚好贴着成品边缘（例如「${issue.nodeName}」）。裁切有误差，边上可能露出白边。把它们拉出画框外，超出部分会作为出血导出。`,
+      };
     case "hairline":
-      title = "线条太细，可能印不出来";
-      body = `最细的线条约 ${issue.value?.toFixed(2)} pt（「${issue.nodeName}」），印刷建议不小于 ${MIN_STROKE_PT} pt。`;
-      break;
+      return { title: "线条太细，可能印不出来", body: `最细的线条约 ${issue.value?.toFixed(2)} pt${at}，印刷建议不小于 ${MIN_STROKE_PT} pt。` };
     case "font":
-      title = "文字太小";
-      body = `最小的文字约 ${issue.value?.toFixed(1)} pt（「${issue.nodeName}」），小于 ${MIN_FONT_PT} pt 印出来可能看不清。`;
-      break;
+      return { title: "文字太小", body: `最小的文字约 ${issue.value?.toFixed(1)} pt${at}，小于 ${MIN_FONT_PT} pt 印出来可能看不清。` };
   }
+}
+
+export function LocateButton({ nodeId, onLocate }: { nodeId: string; onLocate: (id: string) => void }) {
+  return (
+    <button
+      type="button"
+      class="link-accent"
+      style="display:inline-flex;align-items:center;gap:4px;align-self:flex-start"
+      onClick={(e) => {
+        e.stopPropagation();
+        onLocate(nodeId);
+      }}
+    >
+      <Icon name="target" size={12} />
+      在画布中定位图层
+    </button>
+  );
+}
+
+function IssueCard({ issue, plan, onLocate }: { issue: Issue; plan: { paper: string }; onLocate: (id: string) => void }) {
+  const { title, body } = issueText(issue, plan.paper);
   return (
     <div class="card-box">
       <div class="card-title">
@@ -159,12 +184,7 @@ function IssueCard({ issue, plan, onLocate }: { issue: Issue; plan: { paper: str
         {title}
       </div>
       <div class="desc">{body}</div>
-      {issue.nodeId && (
-        <button type="button" class="link-accent" style="display:inline-flex;align-items:center;gap:4px;align-self:flex-start" onClick={() => onLocate(issue.nodeId!)}>
-          <Icon name="target" size={12} />
-          在画布中定位图层
-        </button>
-      )}
+      {issue.nodeId && <LocateButton nodeId={issue.nodeId} onLocate={onLocate} />}
     </div>
   );
 }

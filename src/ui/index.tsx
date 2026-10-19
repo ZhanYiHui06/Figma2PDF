@@ -10,11 +10,16 @@ import { defaultFix, pageIssues, pagePlan, type PageFix } from "./issues";
 import { Detail } from "./screens/Detail";
 import { Done, FEEDBACK_URL } from "./screens/Done";
 import { Icc } from "./screens/Icc";
+import { Issues } from "./screens/Issues";
 import { Main, type Section } from "./screens/Main";
 import { Progress } from "./screens/Progress";
 import "./styles.css";
 
-type Screen = { name: "main" } | { name: "detail"; id: string } | { name: "icc" } | { name: "progress" } | { name: "done" };
+type Screen = { name: "main" } | { name: "detail"; id: string; from?: "issues" } | { name: "issues" } | { name: "icc" } | { name: "progress" } | { name: "done" };
+
+/** 页面层级：往深处走从右侧滑入，返回从左侧滑入 */
+const DEPTH: Record<Screen["name"], number> = { main: 0, icc: 1, issues: 1, progress: 1, detail: 2, done: 2 };
+const screenKey = (s: Screen) => (s.name === "detail" ? `detail:${s.id}` : s.name);
 
 function App() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -33,6 +38,13 @@ function App() {
   const [storageError, setStorageError] = useState<string | null>(null);
   const cancelRef = useRef<(() => void) | null>(null);
   const busy = screen.name === "progress";
+  const prevScreen = useRef<Screen>(screen);
+  const direction = useRef<"forward" | "back">("forward");
+  // 根据前后两页的层级决定滑入方向；只在换页时生效，同一页内的重渲染不受影响
+  if (screenKey(prevScreen.current) !== screenKey(screen)) {
+    direction.current = DEPTH[screen.name] >= DEPTH[prevScreen.current.name] ? "forward" : "back";
+    prevScreen.current = screen;
+  }
 
   useEffect(() => {
     const off = listen((m) => {
@@ -145,6 +157,19 @@ function App() {
         settings={settings}
         onFix={(f) => setFixes((m) => new Map(m).set(page.id, f))}
         onLocate={(nodeId) => send({ type: "locate", nodeId })}
+        onBack={() => setScreen(screen.from === "issues" ? { name: "issues" } : { name: "main" })}
+      />
+    );
+  } else if (screen.name === "issues") {
+    body = (
+      <Issues
+        pages={pages}
+        thumbs={thumbs}
+        issues={issues}
+        fixOf={fixOf}
+        settings={settings}
+        onOpen={(id) => setScreen({ name: "detail", id, from: "issues" })}
+        onLocate={(nodeId) => send({ type: "locate", nodeId })}
         onBack={() => setScreen({ name: "main" })}
       />
     );
@@ -204,6 +229,7 @@ function App() {
         onRemove={(id) => setOrder((o) => o.filter((x) => x !== id))}
         onReset={() => setOrder((sel?.pages ?? []).map((p) => p.id))}
         onOpen={(id) => setScreen({ name: "detail", id })}
+        onIssues={() => setScreen({ name: "issues" })}
         onSingle={(id, single) => {
           const n = new Set(singles);
           if (single) n.add(id);
@@ -219,7 +245,9 @@ function App() {
 
   return (
     <>
-      {body}
+      <div class={`screen-anim ${direction.current}`} key={screenKey(screen)}>
+        {body}
+      </div>
       {confirmMixed && !busy && (
         <Modal
           title="各页尺寸不一致"

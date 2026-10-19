@@ -16,8 +16,11 @@ export function Done({ result, onDownload, onBack, onFeedback }: { result: Expor
       <Nav title="导出完成" onBack={onBack} />
       <div class="body scroll">
         <div class="result">
-          <span class="ok">
-            <Icon name="check" />
+          <span class="ok" aria-label="导出成功">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <circle class="ok-ring" cx="16" cy="16" r="15" pathLength={1} />
+              <path class="ok-tick" d="M10 16.5L14.2 20.5L22 12" pathLength={1} />
+            </svg>
           </span>
           <div style="min-width:0">
             <div class="name">{result.fileName}</div>
