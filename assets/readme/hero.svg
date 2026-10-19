@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">Folio – Frame to CMYK PDF</title>
+  <desc id="desc">Folio 是一个 Figma 插件：把 RGB 的 Frame 导出成带出血和裁切标记的印刷级 CMYK PDF。</desc>
+
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2E2A28"/>
+      <stop offset="1" stop-color="#161413"/>
+    </linearGradient>
+    <clipPath id="bleed-clip">
+      <rect x="-9" y="-9" width="168" height="230"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1200" height="400" rx="24" fill="#F5F2ED"/>
+
+  <g id="title-block" transform="translate(64 64)">
+    <g id="logo" transform="scale(2.25)">
+      <rect width="32" height="32" rx="5.5" fill="url(#tile)"/>
+      <path d="M20.1996 10.3002H11.8002V14.5004H19.0004V18.1H11.8002V25.8998H7.59998V6.09998H16.0004L20.1996 10.3002Z" fill="#FFFFFF"/>
+      <path d="M17.8 6.09998H24.4V12.7L17.8 6.09998Z" fill="#E8452C"/>
+    </g>
+    <text x="92" y="30" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" letter-spacing="1.5" fill="#8A847D">FIGMA PLUGIN · v1.0</text>
+    <text x="92" y="60" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" letter-spacing="1.5" fill="#8A847D">FRAME → PDF</text>
+    <text x="-4" y="168" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif" font-size="96" font-weight="700" letter-spacing="-3" fill="#1E1E1E">Folio</text>
+    <text x="0" y="222" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif" font-size="34" font-weight="600" fill="#D9412E">把 Frame 导出成印刷级 CMYK PDF</text>
+    <text x="0" y="268" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif" font-size="21" fill="#5A5550">出血与裁切标记 · ICC 配置文件 · 导出前自动检查</text>
+  </g>
+
+  <g id="frame-rgb" transform="translate(700 100)">
+    <text x="0" y="-14" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif" font-size="18" fill="#8A847D">封面</text>
+    <rect width="150" height="212" fill="#FFFFFF" stroke="#0D99FF" stroke-width="2"/>
+    <rect x="0" y="0" width="150" height="112" fill="#3B6FE0"/>
+    <rect x="16" y="128" width="88" height="12" rx="2" fill="#1E1E1E"/>
+    <rect x="16" y="150" width="118" height="7" rx="2" fill="#C9C3BC"/>
+    <rect x="16" y="164" width="104" height="7" rx="2" fill="#C9C3BC"/>
+    <rect x="16" y="188" width="40" height="10" rx="2" fill="#FF3B2F"/>
+    <text x="75" y="244" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" fill="#5A5550">Frame · RGB</text>
+  </g>
+
+  <g id="arrow" fill="none" stroke="#1E1E1E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M876 206H926"/>
+    <path d="M916 196L926 206L916 216"/>
+  </g>
+
+  <g id="pdf-cmyk" transform="translate(956 100)">
+    <g clip-path="url(#bleed-clip)">
+      <rect x="-9" y="-9" width="168" height="230" fill="#FFFFFF"/>
+      <rect x="-9" y="-9" width="168" height="121" fill="#2E5CB8"/>
+    </g>
+    <rect x="-9" y="-9" width="168" height="230" fill="none" stroke="#D9412E" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <rect x="16" y="128" width="88" height="12" rx="2" fill="#1E1E1E"/>
+    <rect x="16" y="150" width="118" height="7" rx="2" fill="#C9C3BC"/>
+    <rect x="16" y="164" width="104" height="7" rx="2" fill="#C9C3BC"/>
+    <rect x="16" y="188" width="40" height="10" rx="2" fill="#E0452E"/>
+    <rect width="150" height="212" fill="none" stroke="#1E1E1E" stroke-opacity="0.25" stroke-width="1"/>
+    <g id="crop-marks" stroke="#1E1E1E" stroke-width="1.5">
+      <path d="M0 -14V-30M-14 0H-30"/>
+      <path d="M150 -14V-30M164 0H180"/>
+      <path d="M0 226V242M-14 212H-30"/>
+      <path d="M150 226V242M164 212H180"/>
+    </g>
+    <g id="cmyk" transform="translate(4 268)">
+      <circle cx="9" cy="-6" r="9" fill="#00A0E9"/>
+      <circle cx="31" cy="-6" r="9" fill="#E4007F"/>
+      <circle cx="53" cy="-6" r="9" fill="#FFE100"/>
+      <circle cx="75" cy="-6" r="9" fill="#1E1E1E"/>
+      <text x="94" y="0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" fill="#5A5550">PDF</text>
+    </g>
+  </g>
+</svg>
