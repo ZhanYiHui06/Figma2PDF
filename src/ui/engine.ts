@@ -14,7 +14,7 @@ let cached: Uint8Array | null = null;
 
 export const engineReady = () => cached !== null;
 
-async function download(url: string, onProgress: (received: number) => void, signal: AbortSignal): Promise<Uint8Array> {
+export async function download(url: string, onProgress: (received: number) => void, signal: AbortSignal): Promise<Uint8Array> {
   const res = await fetch(url, { signal });
   if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
   const reader = res.body.getReader();

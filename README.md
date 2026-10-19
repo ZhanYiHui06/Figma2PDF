@@ -27,6 +27,7 @@ npm run check      # 类型检查 + 单元测试 + 构建
 | `src/main/` | 插件主线程：读选区、做检查、克隆 Frame 导出 PDF（临时节点在 `finally` 里删除） |
 | `src/ui/` | 界面（Preact），导出流程、Ghostscript Worker、ICC 管理 |
 | `src/lib/` | 与 Figma 无关的纯逻辑：纸张匹配、选区解析、ppi、ICC 解析、PDF 处理、Ghostscript 调用 |
+| `profiles/` | 随插件提供的 CMYK 配置文件（CC0），构建时压缩内联；来源与许可见 `profiles/NOTICE.md` |
 | `test/` | Vitest 单元测试，包含一次真实的 Ghostscript WASM 转换 |
 | `assets/` | 插件图标（来自原型的 logo/Folio 组件），上架社区时使用 |
 | `spike/` | 技术验证脚本（非产品代码） |

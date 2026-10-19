@@ -8,10 +8,10 @@ import type { IccEntry, Issue, MainToUi, PageInfo, Settings } from "../shared/me
 import { listen, send } from "./bridge";
 import { convertToCmyk } from "./convert";
 import { engineReady, loadEngine } from "./engine";
-import { BUILTIN_ICC, loadIccData } from "./icc-store";
+import { loadProfile, needsDownload, presetById } from "./icc-store";
 import { bleedPt, pagePlan, summarizeIssues, type PageFix } from "./issues";
 
-export type StepId = "engine" | "pages" | "convert" | "file";
+export type StepId = "engine" | "profile" | "pages" | "convert" | "file";
 export type StepState = "pending" | "active" | "done";
 
 export interface Progress {
@@ -71,6 +71,7 @@ export function startExport(job: ExportJob, onProgress: (p: Progress) => void): 
 
   const steps: Progress["steps"] = [];
   if (cmyk && !engineReady()) steps.push({ id: "engine", state: "pending", done: 0, total: 1 });
+  if (cmyk && needsDownload(job.icc.id)) steps.push({ id: "profile", state: "pending", done: 0, total: presetById(job.icc.id)!.size });
   steps.push({ id: "pages", state: "pending", done: 0, total: n });
   if (cmyk) steps.push({ id: "convert", state: "pending", done: 0, total: n });
   steps.push({ id: "file", state: "pending", done: 0, total: 1 });
@@ -101,6 +102,13 @@ export function startExport(job: ExportJob, onProgress: (p: Progress) => void): 
       set("engine", { state: "active" });
       wasm = await loadEngine((r, t) => set("engine", { done: r, total: t }), abort.signal);
       set("engine", { state: "done" });
+    }
+    // 先把配置文件准备好：远程的要下载，下载失败就不必再导出页面
+    let icc: Uint8Array | undefined;
+    if (cmyk) {
+      set("profile", { state: "active" });
+      icc = await loadProfile(job.icc.id, (r, t) => set("profile", { done: r, total: t }), abort.signal);
+      set("profile", { state: "done" });
     }
 
     set("pages", { state: "active" });
@@ -136,7 +144,6 @@ export function startExport(job: ExportJob, onProgress: (p: Progress) => void): 
     let finalPdf = merged;
     if (cmyk && wasm) {
       set("convert", { state: "active" });
-      const icc = job.icc.id === BUILTIN_ICC.id ? undefined : await loadIccData(job.icc.id);
       const handle = convertToCmyk({ wasm: wasm.slice(), pdf: merged, icc }, (p) => set("convert", { done: p }));
       cancelConvert = handle.cancel;
       finalPdf = await handle.promise;

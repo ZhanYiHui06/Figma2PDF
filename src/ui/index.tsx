@@ -5,7 +5,7 @@ import { DEFAULT_SETTINGS, type IccEntry, type PageInfo, type SelectionPayload, 
 import { listen, send } from "./bridge";
 import { Modal } from "./components";
 import { Cancelled, downloadBlob, startExport, type ExportResult, type Progress as ProgressState } from "./exporter";
-import { BUILTIN_ICC } from "./icc-store";
+import { BUILTIN_ICC, presetById } from "./icc-store";
 import { defaultFix, pageIssues, pagePlan, type PageFix } from "./issues";
 import { Detail } from "./screens/Detail";
 import { Done, FEEDBACK_URL } from "./screens/Done";
@@ -87,7 +87,7 @@ function App() {
   const issues = useMemo(() => new Map(pages.map((p) => [p.id, pageIssues(p, fixOf(p), settings)])), [pages, fixes, settings]);
   const defaultOrder = (sel?.pages ?? []).map((p) => p.id).join("|");
   const orderChanged = order.join("|") !== defaultOrder;
-  const icc = settings.iccId === BUILTIN_ICC.id ? BUILTIN_ICC : (iccs.find((e) => e.id === settings.iccId) ?? BUILTIN_ICC);
+  const icc = settings.iccId === BUILTIN_ICC.id ? BUILTIN_ICC : (presetById(settings.iccId) ?? iccs.find((e) => e.id === settings.iccId) ?? BUILTIN_ICC);
 
   const updateSettings = (patch: Partial<Settings>) => {
     setSettings((s) => {

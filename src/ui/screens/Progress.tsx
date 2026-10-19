@@ -8,9 +8,10 @@ const MB = 1024 * 1024;
 
 export function Progress({ progress, iccName, onCancel }: { progress: P; iccName: string; onCancel: () => void }) {
   const title = (id: StepId) =>
-    ({ engine: "下载色彩引擎（仅首次）", pages: "导出页面", convert: `转换为 CMYK · ${iccName}`, file: "生成 PDF 文件" })[id];
+    ({ engine: "下载色彩引擎（仅首次）", profile: "下载 ICC 配置文件", pages: "导出页面", convert: `转换为 CMYK · ${iccName}`, file: "生成 PDF 文件" })[id];
   const sub = (s: P["steps"][number]) => {
     if (s.id === "engine") return s.state === "done" ? "约 11 MB · 已完成" : s.state === "active" ? `${(s.done / MB).toFixed(1)} / ${(s.total / MB).toFixed(1)} MB` : "约 11 MB";
+    if (s.id === "profile") return s.state === "pending" ? `${iccName} · ${(s.total / MB).toFixed(1)} MB` : `${(s.done / MB).toFixed(1)} / ${(s.total / MB).toFixed(1)} MB`;
     if (s.id === "pages") return `${s.done} / ${s.total}`;
     if (s.id === "convert") return s.state === "done" ? `${s.total} / ${s.total} 页` : s.state === "active" ? `第 ${Math.max(1, s.done)} / ${s.total} 页` : "";
     return "";

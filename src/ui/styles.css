@@ -211,6 +211,8 @@ input, select { font: inherit; color: inherit; }
 
 /* ---------- 子页面通用 ---------- */
 .body { flex: 1; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+/* 子页面内容超出时整体滚动，子元素不被压缩（否则 overflow:hidden 的列表会被裁掉） */
+.body > * { flex-shrink: 0; }
 .card-box { border: 1px solid var(--border-default); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .card-title { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 18px; font-weight: 500; }
 .card-title .icon { color: var(--warning); }
@@ -300,3 +302,4 @@ input, select { font: inherit; color: inherit; }
   .ok-tick { stroke-dashoffset: 0; }
   .seg-thumb, .segmented button, .view-toggle button, .toolbar, .toolbar::before, .setting, .issue-page, .toggle, .toggle::after { transition: none; }
 }
+.icc-group-title { font-weight: 500; color: var(--text-secondary); margin-bottom: -4px; }

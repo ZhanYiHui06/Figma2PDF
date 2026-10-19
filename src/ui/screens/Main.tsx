@@ -1,11 +1,12 @@
 // 01 列表视图 / 02 网格视图 / 03 设置展开 / 08 空状态 / 09 深色模式（同一套组件，颜色走变量）
 
-import { useRef, useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { formatPaperSize } from "../../lib/paper";
 import type { IccEntry, Issue, PageInfo, SelectionPayload, Settings } from "../../shared/messages";
 import { Banner, Checkbox, Segmented, Select, Toggle } from "../components";
 import { moveId, useDragSort } from "../dnd";
 import { Icon } from "../icons";
+import { ICC_PRESETS } from "../icc-store";
 import { headlineIssue } from "../issues";
 
 export type Section = "color" | "bleed" | "output";
@@ -49,11 +50,16 @@ export function Main(p: MainProps) {
   // 列表滚离顶部后，页面栏底边变成渐变透明 + 渐变模糊
   const [scrolled, setScrolled] = useState(false);
   const ids = p.pages.map((x) => x.id);
+  const flip = useFlip(listRef);
   const { drag, start } = useDragSort({
     ids,
     layout: p.settings.view,
     container: () => listRef.current,
-    onMove: (id, at) => p.onReorder(moveId(ids, id, at)),
+    onMove: (id, at) => {
+      // 松手时被拖的那一项从浮层所在位置滑回列表
+      flip.snapshot(id, document.querySelector(".floating"));
+      p.onReorder(moveId(ids, id, at));
+    },
     onClick: (id) => p.onOpen(id),
   });
 
@@ -73,7 +79,10 @@ export function Main(p: MainProps) {
           <span class="title">页面</span>
           <span class="tag tag-neutral">{p.pages.length}</span>
           <div class="spacer" />
-          <button type="button" class="reset" disabled={!p.orderChanged} onClick={p.onReset} title="按画布位置重新排序，并恢复移除的页面">
+          <button type="button" class="reset" disabled={!p.orderChanged} onClick={() => {
+              flip.snapshot();
+              p.onReset();
+            }} title="按画布位置重新排序，并恢复移除的页面">
             <Icon name="undo" size={12} />
             恢复默认顺序
           </button>
@@ -125,6 +134,7 @@ export function Main(p: MainProps) {
                     title="从本次导出中移除（不改画布）"
                     onClick={(e) => {
                       e.stopPropagation();
+                      flip.snapshot();
                       p.onRemove(pg.id);
                     }}
                   >
@@ -163,6 +173,7 @@ export function Main(p: MainProps) {
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => {
                         e.stopPropagation();
+                        flip.snapshot();
                         p.onRemove(pg.id);
                       }}
                     >
@@ -223,6 +234,49 @@ export function Main(p: MainProps) {
       </div>
     </div>
   );
+}
+
+type Pos = { left: number; top: number };
+
+/**
+ * FLIP：顺序变化前记下每一项的位置（snapshot），变化后把它们从旧位置平滑移到新位置。
+ * 位置相对滚动容器内容计算，滚动不会被误当成移动。快照在紧接着的那次渲染里用掉，
+ * 所以拖回原位松手时，被拖的那一项也会从浮层位置滑回去。
+ */
+function useFlip(listRef: { current: HTMLElement | null }) {
+  const before = useRef<Map<string, Pos> | null>(null);
+  const pos = (box: HTMLElement, r: DOMRect): Pos => {
+    const b = box.getBoundingClientRect();
+    return { left: r.left - b.left + box.scrollLeft, top: r.top - b.top + box.scrollTop };
+  };
+
+  useLayoutEffect(() => {
+    const box = listRef.current;
+    const prev = before.current;
+    before.current = null;
+    if (!box || !prev || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    for (const el of box.querySelectorAll<HTMLElement>("[data-id]")) {
+      const from = prev.get(el.dataset.id!);
+      if (!from) continue;
+      const to = pos(box, el.getBoundingClientRect());
+      const dx = from.left - to.left;
+      const dy = from.top - to.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+      el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
+    }
+  });
+
+  return {
+    /** 改顺序之前调用；dragged + floating：被拖动的那一项改从浮层的位置出发 */
+    snapshot(dragged?: string, floating?: Element | null) {
+      const box = listRef.current;
+      if (!box) return;
+      const m = new Map<string, Pos>();
+      for (const el of box.querySelectorAll<HTMLElement>("[data-id]")) m.set(el.dataset.id!, pos(box, el.getBoundingClientRect()));
+      if (dragged && floating) m.set(dragged, pos(box, floating.getBoundingClientRect()));
+      before.current = m;
+    },
+  };
 }
 
 function renderBanners(p: MainProps) {
@@ -299,7 +353,11 @@ function ColorSection(p: MainProps) {
               </div>
               <Select
                 value={s.iccId}
-                options={[{ value: "builtin", label: "通用 CMYK（近似 SWOP） · 内置" }, ...p.iccs.map((e) => ({ value: e.id, label: e.name }))]}
+                options={[
+                  { value: "builtin", label: "通用 CMYK（近似 SWOP）" },
+                  ...ICC_PRESETS.map((e) => ({ value: e.id, label: e.kind === "remote" ? `${e.name} · 需下载` : e.name })),
+                  ...p.iccs.map((e) => ({ value: e.id, label: `${e.name} · 你导入的` })),
+                ]}
                 onChange={(v) => p.onSettings({ iccId: v })}
               />
               <div class="toggle-row" onClick={() => p.onSettings({ blackToK: !s.blackToK })}>

@@ -5,7 +5,7 @@ import type { IccEntry } from "../../shared/messages";
 import { Banner, Nav, Radio } from "../components";
 import { formatBytes } from "../exporter";
 import { Icon } from "../icons";
-import { BUILTIN_ICC, importIcc, STORAGE_LIMIT, usedBytes } from "../icc-store";
+import { BUILTIN_ICC, ICC_PRESETS, importIcc, STORAGE_LIMIT, usedBytes } from "../icc-store";
 
 interface Props {
   iccs: IccEntry[];
@@ -27,7 +27,22 @@ export function Icc({ iccs, selected, storageError, onSelect, onDelete, onBack, 
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const used = usedBytes(iccs);
-  const all = [BUILTIN_ICC, ...iccs];
+  const bundled = ICC_PRESETS.filter((e) => e.kind === "bundled");
+  const remote = ICC_PRESETS.filter((e) => e.kind === "remote");
+
+  const item = (e: IccEntry, sub: string, right?: preact.ComponentChildren) => {
+    const on = e.id === selected;
+    return (
+      <div class={`icc-item${on ? " on" : ""}`} key={e.id} onClick={() => onSelect(e.id)}>
+        <Radio on={on} />
+        <div style="flex:1;min-width:0">
+          <div class="name">{e.name}</div>
+          <div class="muted">{sub}</div>
+        </div>
+        {right}
+      </div>
+    );
+  };
 
   const onFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -53,38 +68,36 @@ export function Icc({ iccs, selected, storageError, onSelect, onDelete, onBack, 
       <Nav title="ICC 配置文件" onBack={onBack} />
       <div class="body scroll">
         <div class="muted">CMYK 导出时用哪个配置文件，决定颜色怎样转换。最好使用印刷厂指定的那个。</div>
+        <div class="icc-group-title">随插件提供</div>
         <div class="icc-list">
-          {all.map((e) => {
-            const on = e.id === selected;
-            const builtin = e.id === BUILTIN_ICC.id;
-            return (
-              <div class={`icc-item${on ? " on" : ""}`} key={e.id} onClick={() => onSelect(e.id)}>
-                <Radio on={on} />
-                <div style="flex:1;min-width:0">
-                  <div class="name">{e.name}</div>
-                  <div class="muted">{builtin ? "内置 · 适合不确定时使用" : `你导入的 · ${formatBytes(e.size)} · ${date(e.importedAt)}`}</div>
-                </div>
-                {on && <span class="link-accent" style="font-weight:400">默认</span>}
-                {builtin ? (
-                  <span class="tag tag-neutral tag-lg">内置</span>
-                ) : (
-                  <button
-                    type="button"
-                    class="del"
-                    aria-label="删除"
-                    title="删除"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      onDelete(e.id);
-                    }}
-                  >
-                    <Icon name="trash" size={14} />
-                  </button>
-                )}
-              </div>
-            );
-          })}
+          {item(BUILTIN_ICC, "近似 SWOP · 不确定时使用")}
+          {bundled.map((e) => item(e, e.note))}
         </div>
+        <div class="icc-group-title">首次使用时下载</div>
+        <div class="icc-list">{remote.map((e) => item(e, `${e.note} · ${formatBytes(e.size)}`))}</div>
+        <div class="icc-group-title">你导入的</div>
+        {iccs.length > 0 && (
+          <div class="icc-list">
+            {iccs.map((e) =>
+              item(
+                e,
+                `${formatBytes(e.size)} · ${date(e.importedAt)}`,
+                <button
+                  type="button"
+                  class="del"
+                  aria-label="删除"
+                  title="删除"
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    onDelete(e.id);
+                  }}
+                >
+                  <Icon name="trash" size={14} />
+                </button>,
+              ),
+            )}
+          </div>
+        )}
         <input ref={fileRef} type="file" accept=".icc,.icm" multiple hidden onChange={(e) => onFiles((e.target as HTMLInputElement).files)} />
         <button type="button" class="btn btn-secondary btn-block" disabled={busy} onClick={() => fileRef.current?.click()}>
           <Icon name="upload" size={14} />
@@ -106,6 +119,7 @@ export function Icc({ iccs, selected, storageError, onSelect, onDelete, onBack, 
         {shownError && <Banner kind="warning">{shownError}</Banner>}
         <div class="guide">
           <b>去哪里找 ICC 文件？</b>
+          <span>印刷厂指定了上面没有的配置文件时，再自己导入：</span>
           <span>1. 直接问印刷厂要（最推荐）</span>
           <span>
             2. Windows：<code>C:\Windows\System32\spool\drivers\color</code>
@@ -124,6 +138,9 @@ export function Icc({ iccs, selected, storageError, onSelect, onDelete, onBack, 
             </button>{" "}
             官网下载
           </span>
+        </div>
+        <div class="note">
+          随插件提供的配置文件来自 colord 项目（CC0 公共领域），GRACoL / SWOP 的表征数据来自 CGATS TR006 / TR005。需下载的配置文件直接从 ICC 官方注册库（color.org）获取，版权归 JPMA、ECI、IDEAlliance 所有，插件不做任何修改。
         </div>
       </div>
     </div>

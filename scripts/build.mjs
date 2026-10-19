@@ -1,5 +1,6 @@
 // 构建：dist/code.js（插件主线程）+ dist/ui.html（界面，JS/CSS/Worker 全部内联）。
 import * as esbuild from "esbuild";
+import { deflateSync } from "fflate";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -33,6 +34,22 @@ const workerSource = {
   },
 };
 
+/** import x from "icc-deflate:../profiles/a.icc" → 构建时 deflate 压缩（无时间戳，输出稳定），以 Uint8Array 内联 */
+const iccDeflate = {
+  name: "icc-deflate",
+  setup(build) {
+    build.onResolve({ filter: /^icc-deflate:/ }, (args) => ({
+      path: path.resolve(args.resolveDir, args.path.slice("icc-deflate:".length)),
+      namespace: "icc-deflate",
+    }));
+    build.onLoad({ filter: /.*/, namespace: "icc-deflate" }, async (args) => ({
+      contents: deflateSync(new Uint8Array(await readFile(args.path)), { level: 9 }),
+      loader: "binary",
+      watchFiles: [args.path],
+    }));
+  },
+};
+
 async function buildCode() {
   await esbuild.build({ ...common, entryPoints: [path.join(root, "src/main/code.ts")], outfile: path.join(dist, "code.js"), format: "iife", target: "es2017" });
 }
@@ -48,7 +65,7 @@ async function buildUi() {
     target: "es2020",
     jsx: "automatic",
     jsxImportSource: "preact",
-    plugins: [workerSource, gsShim],
+    plugins: [workerSource, gsShim, iccDeflate],
   });
   const js = r.outputFiles.find((f) => f.path.endsWith(".js")).text;
   const css = r.outputFiles.find((f) => f.path.endsWith(".css"))?.text ?? "";
