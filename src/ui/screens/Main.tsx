@@ -49,6 +49,10 @@ export function Main(p: MainProps) {
   const listRef = useRef<HTMLDivElement>(null);
   // 列表滚离顶部后，页面栏底边变成渐变透明 + 渐变模糊
   const [scrolled, setScrolled] = useState(false);
+  // 首次进入主界面不播放视图切换动画，只有用户切换视图时才播
+  const viewChanged = useRef(false);
+  const firstView = useRef(p.settings.view);
+  if (p.settings.view !== firstView.current) viewChanged.current = true;
   const ids = p.pages.map((x) => x.id);
   const flip = useFlip(listRef);
   const { drag, start } = useDragSort({
@@ -98,92 +102,95 @@ export function Main(p: MainProps) {
         </div>
 
         <div class="pages scroll" ref={listRef} onScroll={(e) => setScrolled((e.currentTarget as HTMLElement).scrollTop > 0)}>
-          {p.settings.view === "list" ? (
-            p.pages.map((pg, i) => {
-              const head = headlineIssue(p.issues.get(pg.id) ?? []);
-              return (
-                <div
-                  key={pg.id}
-                  data-id={pg.id}
-                  class={`row${drag?.id === pg.id ? " dragging" : ""}`}
-                  onClick={() => p.onOpen(pg.id)}
-                >
-                  <span
-                    class="handle"
-                    onPointerDown={(e) => start(pg.id, e, (e.currentTarget as HTMLElement).parentElement)}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Icon name="grip" />
-                  </span>
-                  <span class="index">{pad2(i + 1)}</span>
-                  <span class="thumb" style={thumbStyle(p.thumbs[pg.id])} />
-                  <div class="text">
-                    <span class="name">{pg.name}</span>
-                    <span class="meta">{formatPaperSize(pg.width, pg.height)}</span>
-                  </div>
-                  {head && (
-                    <span class="tag tag-warning tag-lg row-tag">
-                      <Icon name="warning" size={12} />
-                      {head.short}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    class="remove"
-                    aria-label="从本次导出中移除"
-                    title="从本次导出中移除（不改画布）"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      flip.snapshot();
-                      p.onRemove(pg.id);
-                    }}
-                  >
-                    <Icon name="close" />
-                  </button>
-                </div>
-              );
-            })
-          ) : (
-            <div class="grid">
-              {p.pages.map((pg, i) => {
-                const has = (p.issues.get(pg.id)?.length ?? 0) > 0;
-                const box = fitBox(pg.width, pg.height, 92, 130);
+          {/* 切换列表 / 网格时内容左右滑入：去网格从右边进，回列表从左边进，和视图开关的滑块方向一致 */}
+          <div class={`view-anim ${p.settings.view === "grid" ? "from-right" : "from-left"}${viewChanged.current ? "" : " still"}`} key={p.settings.view}>
+            {p.settings.view === "list" ? (
+              p.pages.map((pg, i) => {
+                const head = headlineIssue(p.issues.get(pg.id) ?? []);
                 return (
                   <div
                     key={pg.id}
                     data-id={pg.id}
-                    class={`card${drag?.id === pg.id ? " placeholder" : ""}`}
-                    onPointerDown={(e) => start(pg.id, e, e.currentTarget as HTMLElement)}
+                    class={`row${drag?.id === pg.id ? " dragging" : ""}`}
+                    onClick={() => p.onOpen(pg.id)}
                   >
-                    <div class="thumb-wrap">
-                      <span class="thumb" style={{ ...box, ...thumbStyle(p.thumbs[pg.id]) }} />
+                    <span
+                      class="handle"
+                      onPointerDown={(e) => start(pg.id, e, (e.currentTarget as HTMLElement).parentElement)}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Icon name="grip" />
+                    </span>
+                    <span class="index">{pad2(i + 1)}</span>
+                    <span class="thumb" style={thumbStyle(p.thumbs[pg.id])} />
+                    <div class="text">
+                      <span class="name">{pg.name}</span>
+                      <span class="meta">{formatPaperSize(pg.width, pg.height)}</span>
                     </div>
-                    {has && (
-                      <span class="dot" title="有提示，点开查看">
+                    {head && (
+                      <span class="tag tag-warning tag-lg row-tag">
                         <Icon name="warning" size={12} />
+                        {head.short}
                       </span>
                     )}
-                    <span class="label">
-                      {pad2(i + 1)} {pg.name}
-                    </span>
                     <button
                       type="button"
                       class="remove"
                       aria-label="从本次导出中移除"
-                      onPointerDown={(e) => e.stopPropagation()}
+                      title="从本次导出中移除（不改画布）"
                       onClick={(e) => {
                         e.stopPropagation();
                         flip.snapshot();
                         p.onRemove(pg.id);
                       }}
                     >
-                      <Icon name="close" size={12} />
+                      <Icon name="close" />
                     </button>
                   </div>
                 );
-              })}
-            </div>
-          )}
+              })
+            ) : (
+              <div class="grid">
+                {p.pages.map((pg, i) => {
+                  const has = (p.issues.get(pg.id)?.length ?? 0) > 0;
+                  const box = fitBox(pg.width, pg.height, 92, 130);
+                  return (
+                    <div
+                      key={pg.id}
+                      data-id={pg.id}
+                      class={`card${drag?.id === pg.id ? " placeholder" : ""}`}
+                      onPointerDown={(e) => start(pg.id, e, e.currentTarget as HTMLElement)}
+                    >
+                      <div class="thumb-wrap">
+                        <span class="thumb" style={{ ...box, ...thumbStyle(p.thumbs[pg.id]) }} />
+                      </div>
+                      {has && (
+                        <span class="dot" title="有提示，点开查看">
+                          <Icon name="warning" size={12} />
+                        </span>
+                      )}
+                      <span class="label">
+                        {pad2(i + 1)} {pg.name}
+                      </span>
+                      <button
+                        type="button"
+                        class="remove"
+                        aria-label="从本次导出中移除"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          flip.snapshot();
+                          p.onRemove(pg.id);
+                        }}
+                      >
+                        <Icon name="close" size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

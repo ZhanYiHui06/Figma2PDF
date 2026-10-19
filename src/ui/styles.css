@@ -303,3 +303,11 @@ input, select { font: inherit; color: inherit; }
   .seg-thumb, .segmented button, .view-toggle button, .toolbar, .toolbar::before, .setting, .issue-page, .toggle, .toggle::after { transition: none; }
 }
 .icc-group-title { font-weight: 500; color: var(--text-secondary); margin-bottom: -4px; }
+
+/* 列表 / 网格切换：内容左右滑入（只用 backwards 填充，结束后不留 transform） */
+.view-anim { animation: view-in 0.34s var(--ease-slide) backwards; }
+.view-anim.from-right { --from: 36px; }
+.view-anim.from-left { --from: -36px; }
+.view-anim.still { animation: none; }
+@keyframes view-in { from { opacity: 0; transform: translateX(var(--from)); } }
+@media (prefers-reduced-motion: reduce) { .view-anim { animation: none; } }
