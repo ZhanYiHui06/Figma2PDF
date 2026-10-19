@@ -5,7 +5,7 @@ import { formatBytes, type ExportResult } from "../exporter";
 import { Icon } from "../icons";
 
 export const FEEDBACK_URL =
-  "https://github.com/ZhanYiHui06/Figma2PDF/issues/new?title=" +
+  "https://github.com/ZhanYiHui06/Folio/issues/new?title=" +
   encodeURIComponent("印刷厂退件反馈") +
   "&body=" +
   encodeURIComponent("印刷厂退回的原因：\n\n导出设置（色彩 / ICC / 出血）：\n\n印刷厂给的要求（如有）：\n");
