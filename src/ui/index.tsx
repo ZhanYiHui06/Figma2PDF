@@ -14,6 +14,7 @@ import { Issues } from "./screens/Issues";
 import { Main, type Section } from "./screens/Main";
 import { Progress } from "./screens/Progress";
 import "./styles.css";
+import { growFor, manualResize, shrinkBack } from "./window-size";
 
 type Screen = { name: "main" } | { name: "detail"; id: string; from?: "issues" } | { name: "issues" } | { name: "icc" } | { name: "progress" } | { name: "done" };
 
@@ -216,11 +217,14 @@ function App() {
         onToggleSection={(s) =>
           setExpanded((e) => {
             const n = new Set(e);
-            if (n.has(s)) n.delete(s);
-            else {
+            if (n.has(s)) {
+              n.delete(s);
+              // 全部收起后，窗口缩回展开前的高度
+              if (!n.size) shrinkBack();
+            } else {
               n.add(s);
               // 设置就地展开，窗口太矮时拉高一些（用户之后可以自己拖动调整）
-              if (window.innerHeight < 760) send({ type: "resize", width: window.innerWidth, height: 820 });
+              growFor(760, 820);
             }
             return n;
           })
@@ -286,7 +290,7 @@ function ResizeGrip() {
   const start = (e: PointerEvent) => {
     const el = e.currentTarget as HTMLElement;
     el.setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent) => send({ type: "resize", width: ev.clientX + 6, height: ev.clientY + 6 });
+    const move = (ev: PointerEvent) => manualResize(ev.clientX + 6, ev.clientY + 6);
     const up = () => {
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
