@@ -1,0 +1,13 @@
+{
+  "name": "Folio 对开",
+  "id": "folio-pdf-export-dev",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://cdn.jsdelivr.net", "https://unpkg.com"],
+    "reasoning": "CMYK 导出时下载 Ghostscript 色彩引擎（gs.wasm，约 11MB），下载后做 SHA-256 校验。设计文件不会上传。"
+  }
+}
