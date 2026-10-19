@@ -10,7 +10,7 @@ Figma 插件：把 Frame 导出为印刷级多页 PDF（RGB / CMYK·ICC、可视
 
 1. 下载或克隆本仓库（`dist/` 里是构建好的文件，不需要自己构建）。
 2. Figma 桌面版 → 菜单 **Plugins → Development → Import plugin from manifest…**，选仓库根目录的 `manifest.json`。
-3. 选中 Frame / Section，运行 **Plugins → Development → Folio 对开**。
+3. 选中 Frame / Section，运行 **Plugins → Development → Folio – Frame to CMYK PDF**。
 
 > CMYK 导出第一次会在线下载色彩引擎（Ghostscript WASM，约 11MB，来自 jsDelivr，备用 unpkg），下载后做 SHA-256 校验。RGB 导出不联网。设计文件不会上传。
 

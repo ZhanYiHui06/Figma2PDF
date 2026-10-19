@@ -1,5 +1,5 @@
 {
-  "name": "Folio 对开",
+  "name": "Folio – Frame to CMYK PDF",
   "id": "folio-pdf-export-dev",
   "api": "1.0.0",
   "main": "dist/code.js",
