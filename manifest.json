@@ -1,0 +1,13 @@
+{
+  "name": "Folio – Frame to CMYK PDF",
+  "id": "1694012558884472724",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://cdn.jsdelivr.net", "https://unpkg.com", "https://registry.color.org"],
+    "reasoning": "CMYK 导出时下载 Ghostscript 色彩引擎（gs.wasm，约 11MB）；用户选用 Japan Color 2011、PSO Coated v3、GRACoL 2013 时，从 ICC 官方注册库下载对应配置文件。下载内容都做 SHA-256 校验，设计文件不会上传。"
+  }
+}
